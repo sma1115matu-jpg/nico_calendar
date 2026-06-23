@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>家族の一週間</title>
+<style>
+  :root{
+    --paper:#FBF7F0;
+    --card:#FFFFFF;
+    --ink:#33302B;
+    --muted:#A39B8E;
+    --line:#ECE5D9;
+    --p0:#E8835C;   /* 柿 */
+    --p1:#4FA3A0;   /* 青磁 */
+    --p2:#B07BC4;   /* 藤 */
+    --sat:#5B7FB0;  /* 土曜の色 */
+    --sun:#D26A6A;  /* 日曜の色 */
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN","Yu Gothic","游ゴシック体","Meiryo",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:48px;
+  }
+  .wrap{max-width:520px;margin:0 auto;}
+
+  /* ---- header ---- */
+  header{
+    position:sticky;top:0;z-index:20;
+    background:var(--paper);
+    padding:14px 16px 8px;
+    border-bottom:1px solid var(--line);
+  }
+  .titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+  h1{font-size:18px;font-weight:700;margin:0;letter-spacing:.02em;}
+  .caption{font-size:11px;color:var(--muted);margin:0 0 12px;}
+
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+  .nav .range{font-size:14px;font-weight:700;flex:1;text-align:center;}
+  .nav button{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    width:38px;height:34px;border-radius:11px;font-size:18px;line-height:1;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .nav button:active{transform:scale(.94);}
+  .today-btn{
+    margin:0 auto 10px;display:none;border:none;background:var(--ink);color:#fff;
+    font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;cursor:pointer;
+  }
+  .today-btn.show{display:block;}
+
+  /* ---- share settings ---- */
+  .gear{border:1px solid var(--line);background:var(--card);color:var(--muted);
+    width:34px;height:34px;border-radius:11px;font-size:17px;line-height:1;cursor:pointer;flex:0 0 auto;}
+  .gear.on{color:#fff;background:var(--p1);border-color:var(--p1);}
+  .gear:active{transform:scale(.94);}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 12px;}
+  .panel label{display:block;font-size:12px;font-weight:700;margin-bottom:5px;}
+  .panel input{width:100%;font:inherit;font-size:16px;border:1.5px solid var(--line);
+    border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink);}
+  .panel input:focus{outline:none;border-color:var(--ink);}
+  .panel-btns{display:flex;gap:8px;margin-top:10px;}
+  .panel-btns button{flex:1;border:none;border-radius:10px;padding:9px;font:inherit;
+    font-size:13px;font-weight:700;cursor:pointer;background:var(--ink);color:#fff;}
+  .panel-btns .ghost{background:#fff;color:var(--muted);border:1px solid var(--line);flex:0 0 auto;padding:9px 14px;}
+  .refresh{margin-top:8px;width:100%;border:1px solid var(--line);background:#fff;color:var(--ink);
+    border-radius:10px;padding:8px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;}
+  .panel-status{font-size:11px;font-weight:700;color:var(--p1);margin:10px 0 0;}
+  .panel-help{font-size:11px;color:var(--muted);line-height:1.6;margin:6px 0 0;}
+
+  /* shared grid: slot label + 3 people + memo */
+  .grid{display:grid;grid-template-columns:1.9rem 1fr 1fr 1fr 6rem;gap:6px;align-items:center;}
+
+  .legend .memo-h{font-size:11px;color:var(--muted);font-weight:700;text-align:center;}
+  .note{
+    width:100%;height:46px;border:1.5px solid var(--line);border-radius:13px;background:#fff;
+    font:inherit;font-size:16px;color:var(--ink);padding:0 7px;
+  }
+  .note::placeholder{color:#D2CBBE;font-size:12px;}
+  .note:focus{outline:none;border-color:var(--ink);}
+
+  .legend .slot-spacer{}
+  .legend .who{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:4px 2px;border-radius:10px;cursor:text;
+  }
+  .legend .dot{width:14px;height:14px;border-radius:50%;}
+  .legend .name{font-size:12px;font-weight:700;max-width:100%;text-align:center;line-height:1.1;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .legend input{
+    width:100%;font:inherit;font-size:12px;font-weight:700;text-align:center;
+    border:1px solid var(--line);border-radius:8px;padding:2px 4px;background:#fff;
+  }
+
+  /* ---- day cards ---- */
+  main{padding:14px 16px 0;}
+  .day{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:10px 12px 12px;margin-bottom:12px;
+  }
+  .day.today{border-color:var(--ink);box-shadow:0 4px 16px rgba(51,48,43,.10);}
+  .day-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-left:2px;}
+  .dow{font-size:15px;font-weight:700;width:1.6em;}
+  .date{font-size:13px;color:var(--muted);font-weight:700;}
+  .badge{margin-left:auto;font-size:10px;font-weight:700;color:#fff;background:var(--ink);
+    padding:3px 9px;border-radius:999px;}
+  .day.sat .dow{color:var(--sat);}
+  .day.sun .dow{color:var(--sun);}
+
+  .slot{font-size:13px;color:var(--muted);font-weight:700;text-align:center;}
+  .cell{
+    height:46px;border-radius:13px;cursor:pointer;
+    border:1.5px solid color-mix(in srgb, var(--c) 30%, var(--line));
+    background:color-mix(in srgb, var(--c) 7%, #fff);
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;transition:transform .08s ease, background .12s ease;
+    position:relative;
+  }
+  .cell .ico{opacity:0;transform:scale(.6);transition:opacity .12s, transform .12s;}
+  .cell.on{background:var(--c);border-color:var(--c);}
+  .cell.on .ico{opacity:1;transform:scale(1);}
+  .cell:active{transform:scale(.93);}
+  .cell:focus-visible{outline:3px solid var(--ink);outline-offset:2px;}
+
+  .row-gap{height:2px;}
+  footer{text-align:center;color:var(--muted);font-size:11px;padding:18px 16px 0;line-height:1.7;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+    .cell:active,.nav button:active{transform:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="titlebar">
+      <h1>家族の一週間</h1>
+      <button id="gear" class="gear" aria-label="共有の設定">⚙</button>
+    </div>
+    <p class="caption">🏠 がついている時間は、おうちにいます。マスをタップで切りかえ。右の<b>メモ</b>に時間や予定を書けます。名前はタップで変更できます。</p>
+
+    <div id="panel" class="panel" hidden>
+      <label for="cloudInput">共有URL（家族みんなで同じ予定を見る）</label>
+      <input id="cloudInput" type="url" inputmode="url" placeholder="https://〜firebasedatabase.app">
+      <div class="panel-btns">
+        <button id="cloudSave">共有をはじめる</button>
+        <button id="cloudClear" class="ghost">解除</button>
+      </div>
+      <button id="cloudRefresh" class="refresh">最新に更新</button>
+      <p id="cloudStatus" class="panel-status"></p>
+      <p class="panel-help">家族のだれか1人が共有URLを用意し、LINEなどで全員に送ります。各自このURLを貼って「共有をはじめる」を押すと、同じ予定が見られます。URLは家の合鍵のようなもの。家族以外には送らないでください。</p>
+    </div>
+
+    <div class="nav">
+      <button id="prev" aria-label="前の週">‹</button>
+      <div class="range" id="range">　</div>
+      <button id="next" aria-label="次の週">›</button>
+    </div>
+    <button class="today-btn" id="todayBtn">今週へもどる</button>
+
+    <div class="grid legend">
+      <div class="slot-spacer"></div>
+      <div class="who" data-i="0"><span class="dot" style="background:var(--p0)"></span><span class="name"></span></div>
+      <div class="who" data-i="1"><span class="dot" style="background:var(--p1)"></span><span class="name"></span></div>
+      <div class="who" data-i="2"><span class="dot" style="background:var(--p2)"></span><span class="name"></span></div>
+      <div class="memo-h">メモ</div>
+    </div>
+  </header>
+
+  <main id="week"></main>
+
+  <footer>朝・昼・夜の在宅を、家族みんなで共有するカレンダー。<br>変更はこの端末に自動で保存されます。</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- storage: cloud share -> device(localStorage) -> claude storage -> memory ----
+  var mem = {};
+  var hasStore = (typeof window !== "undefined" && window.storage && typeof window.storage.get === "function");
+
+  function getCloudBase(){
+    try{ return localStorage.getItem("famcal_cloud") || ""; }catch(e){ return ""; }
+  }
+  function setCloudBase(v){
+    try{ if(v){ localStorage.setItem("famcal_cloud", v); } else { localStorage.removeItem("famcal_cloud"); } }catch(e){}
+  }
+  function cloudUrl(key){
+    var base = getCloudBase().replace(/\/+$/,"");
+    var k = key.replace(/[:.#$\[\]\/]/g,"_");
+    var path = (key.indexOf("wk:")===0) ? "/famcal/weeks/"+k+".json" : "/famcal/"+k+".json";
+    return base + path;
+  }
+  function lsGet(key, def){
+    try{ var s = localStorage.getItem("famcal_"+key); return s ? JSON.parse(s) : def; }
+    catch(e){ return (key in mem) ? mem[key] : def; }
+  }
+  function lsSet(key, val){
+    try{ localStorage.setItem("famcal_"+key, JSON.stringify(val)); }catch(e){ mem[key]=val; }
+  }
+
+  async function load(key, def){
+    if(getCloudBase()){
+      try{
+        var res = await fetch(cloudUrl(key), {cache:"no-store"});
+        if(res.ok){
+          var data = await res.json();
+          if(data !== null && data !== undefined){ lsSet(key, data); return data; }
+          return def;
+        }
+      }catch(e){ /* オフライン時は端末のキャッシュを使う */ }
+      return lsGet(key, def);
+    }
+    if(hasStore){
+      try{ var r = await window.storage.get(key); return r ? JSON.parse(r.value) : def; }
+      catch(e){ return def; }
+    }
+    return lsGet(key, def);
+  }
+  async function save(key, val){
+    if(getCloudBase()){
+      lsSet(key, val);
+      try{
+        await fetch(cloudUrl(key), {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(val)});
+      }catch(e){ /* 次回の編集時にまた送られます */ }
+      return;
+    }
+    if(hasStore){
+      try{ await window.storage.set(key, JSON.stringify(val)); return; }catch(e){}
+    }
+    lsSet(key, val);
+  }
+
+  // ---- date helpers (week starts Monday) ----
+  var COLORS = ["var(--p0)","var(--p1)","var(--p2)"];
+  var DOW = ["月","火","水","木","金","土","日"];
+  var SLOTS = [["dawn","早朝"],["am","朝"],["pm","昼"],["night","夜"]];
+
+  function startOfWeek(d){
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var day = (x.getDay()+6)%7; // Mon=0 ... Sun=6
+    x.setDate(x.getDate()-day);
+    return x;
+  }
+  function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
+  function iso(d){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function mdLabel(d){ return (d.getMonth()+1)+"/"+d.getDate(); }
+
+  // ---- state ----
+  var names = ["メンバー1","メンバー2","メンバー3"];
+  var weekStart = startOfWeek(new Date());
+  var thisWeekStart = startOfWeek(new Date());
+  var todayIso = iso(new Date());
+  var weekData = {}; // dateIso -> {am:[b,b,b], pm:[...], night:[...]}
+
+  var weekEl = document.getElementById("week");
+  var rangeEl = document.getElementById("range");
+  var todayBtn = document.getElementById("todayBtn");
+
+  function weekKey(){ return "wk:"+iso(weekStart); }
+  function slot(){ return {home:[false,false,false], note:""}; }
+  function emptyDay(){ return {dawn:slot(), am:slot(), pm:slot(), night:slot()}; }
+  // 旧形式（在宅のみの配列）も読めるように整える
+  function normalizeDay(d){
+    var out = emptyDay();
+    if(!d) return out;
+    ["dawn","am","pm","night"].forEach(function(k){
+      var v = d[k];
+      if(Array.isArray(v)){ out[k]={home:v.slice(), note:""}; }
+      else if(v && typeof v==="object"){
+        out[k]={home:(v.home||[false,false,false]).slice(), note:v.note||""};
+      }
+    });
+    return out;
+  }
+
+  // ---- legend / names ----
+  function renderNames(){
+    document.querySelectorAll(".legend .who").forEach(function(w){
+      var i = +w.dataset.i;
+      w.querySelector(".name").textContent = names[i];
+    });
+  }
+  document.querySelectorAll(".legend .who").forEach(function(w){
+    w.addEventListener("click", function(){
+      if(w.querySelector("input")) return;
+      var i = +w.dataset.i;
+      var span = w.querySelector(".name");
+      var inp = document.createElement("input");
+      inp.value = names[i]; inp.maxLength = 8;
+      span.replaceWith(inp); inp.focus(); inp.select();
+      function commit(){
+        var v = inp.value.trim() || names[i];
+        names[i] = v;
+        var ns = document.createElement("span"); ns.className="name"; ns.textContent=v;
+        inp.replaceWith(ns);
+        save("names", names);
+      }
+      inp.addEventListener("blur", commit);
+      inp.addEventListener("keydown", function(e){ if(e.key==="Enter"){ inp.blur(); } });
+    });
+  });
+
+  // ---- week render ----
+  async function loadWeek(){
+    weekData = await load(weekKey(), {});
+  }
+  function renderWeek(){
+    var sun = addDays(weekStart,6);
+    rangeEl.textContent = mdLabel(weekStart)+" 〜 "+mdLabel(sun);
+    todayBtn.classList.toggle("show", iso(weekStart)!==iso(thisWeekStart));
+
+    weekEl.innerHTML = "";
+    for(var di=0; di<7; di++){
+      var date = addDays(weekStart, di);
+      var dIso = iso(date);
+      var dayData = normalizeDay(weekData[dIso]);
+
+      var card = document.createElement("div");
+      card.className = "day";
+      if(di===5) card.classList.add("sat");
+      if(di===6) card.classList.add("sun");
+      var isToday = dIso===todayIso;
+      if(isToday) card.classList.add("today");
+
+      var head = document.createElement("div");
+      head.className="day-head";
+      head.innerHTML = '<span class="dow">'+DOW[di]+'</span><span class="date">'+mdLabel(date)+'</span>'
+                     + (isToday ? '<span class="badge">きょう</span>' : '');
+      card.appendChild(head);
+
+      SLOTS.forEach(function(s){
+        var key = s[0];
+        var grid = document.createElement("div");
+        grid.className="grid";
+        var lab = document.createElement("div");
+        lab.className="slot"; lab.textContent = s[1];
+        grid.appendChild(lab);
+        for(var pi=0; pi<3; pi++){
+          var on = !!dayData[key].home[pi];
+          var btn = document.createElement("button");
+          btn.className = "cell"+(on?" on":"");
+          btn.style.setProperty("--c", COLORS[pi]);
+          btn.setAttribute("aria-pressed", on?"true":"false");
+          btn.setAttribute("aria-label", names[pi]+" "+s[1]+(on?" 在宅":""));
+          btn.innerHTML = '<span class="ico">🏠</span>';
+          (function(dIso,key,pi,btn){
+            btn.addEventListener("click", function(){
+              weekData[dIso]=normalizeDay(weekData[dIso]);
+              var now = !weekData[dIso][key].home[pi];
+              weekData[dIso][key].home[pi]=now;
+              btn.classList.toggle("on", now);
+              btn.setAttribute("aria-pressed", now?"true":"false");
+              save(weekKey(), weekData);
+            });
+          })(dIso,key,pi,btn);
+          grid.appendChild(btn);
+        }
+        var note = document.createElement("input");
+        note.className="note"; note.type="text";
+        note.value = dayData[key].note || "";
+        note.placeholder = "時間など";
+        note.setAttribute("aria-label", s[1]+" のメモ");
+        (function(dIso,key,note){
+          function commit(){
+            weekData[dIso]=normalizeDay(weekData[dIso]);
+            weekData[dIso][key].note = note.value;
+            save(weekKey(), weekData);
+          }
+          note.addEventListener("change", commit);
+          note.addEventListener("blur", commit);
+        })(dIso,key,note);
+        grid.appendChild(note);
+
+        card.appendChild(grid);
+        var gap=document.createElement("div"); gap.className="row-gap"; card.appendChild(gap);
+      });
+
+      weekEl.appendChild(card);
+    }
+  }
+
+  async function goWeek(){
+    await loadWeek();
+    renderWeek();
+  }
+
+  document.getElementById("prev").addEventListener("click", function(){
+    weekStart = addDays(weekStart,-7); goWeek();
+  });
+  document.getElementById("next").addEventListener("click", function(){
+    weekStart = addDays(weekStart,7); goWeek();
+  });
+  todayBtn.addEventListener("click", function(){
+    weekStart = startOfWeek(new Date()); goWeek();
+  });
+
+  // ---- sharing controls ----
+  var gearEl = document.getElementById("gear");
+  var panelEl = document.getElementById("panel");
+  var cloudInput = document.getElementById("cloudInput");
+  var cloudStatus = document.getElementById("cloudStatus");
+  var cloudClear = document.getElementById("cloudClear");
+
+  function updateShareUI(){
+    var on = !!getCloudBase();
+    gearEl.classList.toggle("on", on);
+    cloudStatus.textContent = on
+      ? "共有中：同じURLを使う家族と予定が同期します。"
+      : "共有OFF：この端末だけに保存します。";
+    cloudClear.style.display = on ? "" : "none";
+  }
+  gearEl.addEventListener("click", function(){
+    panelEl.hidden = !panelEl.hidden;
+    if(!panelEl.hidden) cloudInput.value = getCloudBase();
+  });
+  document.getElementById("cloudSave").addEventListener("click", async function(){
+    var base = cloudInput.value.trim().replace(/\/+$/,"");
+    if(base && !/^https?:\/\//.test(base)) base = "https://"+base;
+    setCloudBase(base);
+    updateShareUI();
+    if(base) await enableShare();
+    panelEl.hidden = true;
+  });
+  cloudClear.addEventListener("click", function(){
+    setCloudBase(""); cloudInput.value=""; updateShareUI();
+  });
+  document.getElementById("cloudRefresh").addEventListener("click", refreshFromCloud);
+
+  async function enableShare(){
+    // クラウドが空ならこの端末の内容を最初のデータとして送る
+    var cn = await load("names", null);
+    if(cn === null){ await save("names", names); } else { names = cn; renderNames(); }
+    var ck = weekKey();
+    var cw = await load(ck, null);
+    if(cw === null){ await save(ck, weekData); }
+    await goWeek();
+  }
+  async function refreshFromCloud(){
+    if(!getCloudBase()) return;
+    if(document.activeElement && document.activeElement.tagName === "INPUT") return; // 入力中は上書きしない
+    names = await load("names", names); renderNames();
+    await goWeek();
+  }
+  setInterval(function(){
+    if(getCloudBase() && document.visibilityState === "visible") refreshFromCloud();
+  }, 25000);
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible") refreshFromCloud();
+  });
+
+  // ---- init ----
+  (async function init(){
+    updateShareUI();
+    names = await load("names", names);
+    renderNames();
+    await goWeek();
+  })();
+})();
+</script>
+</body>
+</html>
