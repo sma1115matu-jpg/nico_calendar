@@ -164,7 +164,7 @@
       <h1>家族の一週間</h1>
       <button id="gear" class="gear" aria-label="共有の設定">⚙</button>
     </div>
-    <p class="caption">マスをタップして予定をえらびます（🏠家・💼仕事・🚶外出・⛳ゴルフ・🍺飲み）。下の<b>メモ</b>は3人それぞれが書けます。名前はタップで変更できます。</p>
+    <p class="caption">マスをタップして予定をえらびます（🏠家・💼仕事・🚶外出・⛳ゴルフ・🍺飲み・🐾散歩）。下の<b>メモ</b>は3人それぞれが書けます。名前はタップで変更できます。</p>
 
     <div id="panel" class="panel" hidden>
       <label for="cloudInput">共有URL（家族みんなで同じ予定を見る）</label>
@@ -277,7 +277,8 @@
     ["work","💼","仕事"],
     ["out","🚶","外出"],
     ["golf","⛳","ゴルフ"],
-    ["drink","🍺","飲み"]
+    ["drink","🍺","飲み"],
+    ["walk","🐾","散歩"]
   ];
   function actEmoji(code){ for(var i=0;i<ACT.length;i++){ if(ACT[i][0]===code) return ACT[i][1]; } return ""; }
   function actLabel(code){ for(var i=0;i<ACT.length;i++){ if(ACT[i][0]===code) return ACT[i][2]; } return ""; }
